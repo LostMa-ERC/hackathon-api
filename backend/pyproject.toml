@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "api"
+version = "0.0.1"
+description = "A small example of a FastAPI backend"
+requires-python = ">=3.12"
+license = "MIT"
+
+dependencies = [
+    "fastapi [standard] >= 0.113.0 , < 0.114.0",
+    "pydantic >= 2.7.0 , < 3.0.0",
+    "duckdb >= 1.2.1",
+    "heurist-api>=0.2.3",
+]
+
+[project.scripts]
+api = "src.__main__:cli"
+
+[project.optional-dependencies]
+dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "tests"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
