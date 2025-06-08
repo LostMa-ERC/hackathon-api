@@ -5,7 +5,7 @@ from dotenv import find_dotenv, load_dotenv
 from heurist.api.connection import HeuristAPIConnection
 from heurist.workflows import extract_transform_load
 
-from src.api.constants import DATABASE_FP
+from app.core.constants import DATABASE_FP
 
 load_dotenv(find_dotenv(".env"))
 LOGIN = os.environ.get("HEURIST_LOGIN")

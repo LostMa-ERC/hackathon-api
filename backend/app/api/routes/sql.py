@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src.dependencies import SessionDep
+from app.api.deps import SessionDep
 
 router = APIRouter(
     prefix="/sql",
@@ -21,7 +21,7 @@ async def read_physdesc(session: SessionDep, lang: int | None = None) -> list[di
     Returns:
         list[dict]: Set of pairs of parts and its physical description.
     """
-    from src.sql.scripts import PHYSDESC_LANG_SQL, PHYSDESC_SQL
+    from app.scripts import PHYSDESC_LANG_SQL, PHYSDESC_SQL
 
     if not lang:
         data = session.get_dict_array(query=PHYSDESC_SQL)

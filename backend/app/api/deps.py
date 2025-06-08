@@ -2,7 +2,7 @@ from typing import Annotated, Generator
 
 from fastapi import Depends
 
-from src.api.database import DB
+from app.core.db import DB
 
 
 # Connect to a persistent DuckDB database
