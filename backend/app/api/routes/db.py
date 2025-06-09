@@ -1,8 +1,8 @@
-from fastapi import APIRouter
 from datetime import datetime
 
-from app.api.deps import SessionDep
+from fastapi import APIRouter
 
+from app.api.deps import SessionDep
 
 router = APIRouter(
     prefix="/db", tags=["db"], responses={404: {"description": "Not authenticated"}}

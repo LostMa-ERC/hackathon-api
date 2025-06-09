@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import entities, sql, db
+from app.api.routes import db, entities, sql
 
 api_router = APIRouter()
 api_router.include_router(db.router)

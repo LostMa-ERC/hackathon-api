@@ -26,4 +26,6 @@ packages = ["app"]
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
+    "-p no:warnings"
 ]
+testspaths = ["app/tests/"]
