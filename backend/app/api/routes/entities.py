@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 
 from app.api.deps import SessionDep
+from app.models.entities import Languages, Stories, Storyverses, Texts
+
+from .utils import Join, SQLBuilder
 
 router = APIRouter(
     prefix="/entities",
@@ -9,61 +12,28 @@ router = APIRouter(
 )
 
 
-def get_table_records(
-    session: SessionDep,
-    table_name: str,
-    primary_key: str = "H-ID",
-    offset: int = 0,
-    limit: int = 0,
-    id: int | None = None,
-):
-    where_condition, limit_condition, params = None, None, None
-    selection = f"SELECT * FROM {table_name}"
-    if id:
-        where_condition = "WHERE H-ID = ?"
-        params = [id]
-    order_condition = f'ORDER BY "{primary_key}"'
-    if limit != 0:
-        limit_condition = f"LIMIT {limit}"
-    offset_condition = f"OFFSET {offset}"
-    conditions = [
-        selection,
-        where_condition,
-        order_condition,
-        limit_condition,
-        offset_condition,
-    ]
-    sql = " ".join([cond for cond in conditions if cond])
-    data = session.get_dict_array(query=sql, paramaters=params)
-    return data
-
-
 @router.get("/language")
-async def read_languages(session: SessionDep) -> list[dict]:
+async def read_languages(session: SessionDep):
     """Read all the languages in the database."""
     sql = """
 select * from trm where trm_ParentTermID = 9469
 """
     data = session.get_dict_array(sql)
-    return data
+    return Languages(items=data)
 
 
-@router.get("/storverse")
+@router.get("/storyverse")
 async def read_storyverses(
     session: SessionDep,
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read storyverse entities."""
-    data = get_table_records(
-        session=session,
-        table_name="Storyverse",
-        offset=offset,
-        limit=limit,
-        id=id,
-    )
-    return data
+    builder = SQLBuilder(table_name="Storyverse", offset=offset, limit=limit, id=id)
+    query = builder.select_table()
+    data = session.get_dict_array(query=query)
+    return Storyverses(items=data)
 
 
 @router.get("/story")
@@ -72,12 +42,12 @@ async def read_stories(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read story entities."""
-    data = get_table_records(
-        session=session, table_name="Story", offset=offset, limit=limit, id=id
-    )
-    return data
+    builder = SQLBuilder(table_name="Story", offset=offset, limit=limit, id=id)
+    query = builder.select_table()
+    data = session.get_dict_array(query=query)
+    return Stories(items=data)
 
 
 @router.get("/text")
@@ -86,12 +56,29 @@ async def read_texts(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read text entities."""
-    data = get_table_records(
-        session=session, table_name="TextTable", offset=offset, limit=limit, id=id
-    )
-    return data
+    builder = SQLBuilder(table_name="TextTable", offset=offset, limit=limit, id=id)
+    joins = [
+        Join(table_name="trm", t0_col="language_COLUMN TRM-ID", on_col="trm_ID"),
+        Join(table_name="Genre", t0_col="specific_genre H-ID", on_col="H-ID"),
+    ]
+    query = builder.join_tables(joins=joins)
+    data = session.get_dict_array(query=query)
+    texts = []
+    for text in data:
+        text_data = {
+            k.removeprefix("t0_"): v for k, v in text.items() if k.startswith("t0_")
+        }
+        language_fields = {
+            k.removeprefix("t1_"): v for k, v in text.items() if k.startswith("t1_")
+        }
+        genre_fields = {
+            k.removeprefix("t2_"): v for k, v in text.items() if k.startswith("t2_")
+        }
+        text_data.update({"language": language_fields, "genre": genre_fields})
+        texts.append(text_data)
+    return Texts(items=texts)
 
 
 @router.get("/witness")
@@ -100,11 +87,10 @@ async def read_witnesses(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read witness entities."""
-    data = get_table_records(
-        session=session, table_name="Witness", offset=offset, limit=limit, id=id
-    )
+    builder = SQLBuilder(table_name="Witness", offset=offset, limit=limit, id=id)
+    data = builder.select_table(session=session)
     return data
 
 
@@ -114,11 +100,10 @@ async def read_parts(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read part entities."""
-    data = get_table_records(
-        session=session, table_name="Part", offset=offset, limit=limit, id=id
-    )
+    builder = SQLBuilder(table_name="Part", offset=offset, limit=limit, id=id)
+    data = builder.select_table(session=session)
     return data
 
 
@@ -128,11 +113,10 @@ async def read_documents(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     """Read document entities."""
-    data = get_table_records(
-        session=session, table_name="DocumentTable", offset=offset, limit=limit, id=id
-    )
+    builder = SQLBuilder(table_name="DocumentTable", offset=offset, limit=limit, id=id)
+    data = builder.select_table(session=session)
     return data
 
 
@@ -142,7 +126,7 @@ async def read_repositories(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
-) -> list[dict]:
+):
     sql = """
 SELECT r.*, p.place_name, p.administrative_region, p.country, p.location_mappable
 FROM Repository r

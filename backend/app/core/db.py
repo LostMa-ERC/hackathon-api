@@ -5,7 +5,7 @@ from dotenv import find_dotenv, load_dotenv
 from heurist.api.connection import HeuristAPIConnection
 from heurist.workflows import extract_transform_load
 
-from app.core.constants import DATABASE_FP
+from app.core.config import settings
 
 load_dotenv(find_dotenv(".env"))
 LOGIN = os.environ.get("HEURIST_LOGIN")
@@ -13,7 +13,7 @@ PASSWORD = os.environ.get("HEURIST_PASSWORD")
 
 
 class DB:
-    def __init__(self, fp: str | None = DATABASE_FP) -> None:
+    def __init__(self, fp: str | None = settings.DB_PATH) -> None:
         self.fp = fp
 
     def __enter__(self):

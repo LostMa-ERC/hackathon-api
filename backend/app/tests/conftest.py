@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.api.deps import SessionDep
+from app.core.config import settings
 from app.core.db import DB
 from app.main import app
 
@@ -18,3 +19,7 @@ def client() -> Generator[TestClient, None, None]:
 def db() -> Generator[DB, None, None]:
     with SessionDep() as session:
         yield session
+
+
+def pytest_configure():
+    pytest.api_prefix = settings.API_V1_STR
