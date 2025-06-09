@@ -99,3 +99,4 @@ venv.bak/
 .vscode
 
 *.*db
+*.log
