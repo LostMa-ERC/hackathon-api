@@ -1,9 +1,17 @@
 from fastapi import APIRouter
 
 from app.api.deps import SessionDep
-from app.models.entities import Languages, Stories, Storyverses, Texts
+from app.models.entities import (
+    Languages,
+    Stories,
+    Storyverses,
+    Texts,
+    TextItem,
+    exclude_text_keys,
+)
 
 from .utils import Join, SQLBuilder
+from typing import Literal
 
 router = APIRouter(
     prefix="/entities",
@@ -28,9 +36,12 @@ async def read_storyverses(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
+    format: Literal["json", "csv"] = "json",
 ):
     """Read storyverse entities."""
-    builder = SQLBuilder(table_name="Storyverse", offset=offset, limit=limit, id=id)
+    builder = SQLBuilder(
+        table_name="Storyverse", prefix="storyverse", offset=offset, limit=limit, id=id
+    )
     query = builder.select_table()
     data = session.get_dict_array(query=query)
     return Storyverses(items=data)
@@ -42,9 +53,12 @@ async def read_stories(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
+    format: Literal["json", "csv"] = "json",
 ):
     """Read story entities."""
-    builder = SQLBuilder(table_name="Story", offset=offset, limit=limit, id=id)
+    builder = SQLBuilder(
+        table_name="Story", prefix="story", offset=offset, limit=limit, id=id
+    )
     query = builder.select_table()
     data = session.get_dict_array(query=query)
     return Stories(items=data)
@@ -56,29 +70,53 @@ async def read_texts(
     offset: int = 0,
     limit: int = 100,
     id: int | None = None,
+    format: Literal["json", "csv"] = "json",
 ):
     """Read text entities."""
-    builder = SQLBuilder(table_name="TextTable", offset=offset, limit=limit, id=id)
+    builder = SQLBuilder(
+        table_name="TextTable", prefix="text", offset=offset, limit=limit, id=id
+    )
     joins = [
-        Join(table_name="trm", t0_col="language_COLUMN TRM-ID", on_col="trm_ID"),
-        Join(table_name="Genre", t0_col="specific_genre H-ID", on_col="H-ID"),
+        Join(
+            table_name="trm",
+            prefix="lang",
+            t0_col="language_COLUMN TRM-ID",
+            on_col="trm_ID",
+        ),
+        Join(
+            table_name="Genre",
+            prefix="genre",
+            t0_col="specific_genre H-ID",
+            on_col="H-ID",
+        ),
     ]
     query = builder.join_tables(joins=joins)
     data = session.get_dict_array(query=query)
     texts = []
     for text in data:
         text_data = {
-            k.removeprefix("t0_"): v for k, v in text.items() if k.startswith("t0_")
+            k.removeprefix("text_"): v for k, v in text.items() if k.startswith("text_")
         }
         language_fields = {
-            k.removeprefix("t1_"): v for k, v in text.items() if k.startswith("t1_")
+            k.removeprefix("lang_"): v for k, v in text.items() if k.startswith("lang_")
         }
         genre_fields = {
-            k.removeprefix("t2_"): v for k, v in text.items() if k.startswith("t2_")
+            k.removeprefix("genre_"): v
+            for k, v in text.items()
+            if k.startswith("genre_")
         }
         text_data.update({"language": language_fields, "genre": genre_fields})
         texts.append(text_data)
-    return Texts(items=texts)
+    if format == "json":
+        return Texts(items=texts)
+    else:
+        return {
+            "items": [
+                TextItem.model_validate(d).model_dump(exclude=exclude_text_keys)
+                for d in texts
+            ],
+            "count": len(texts),
+        }
 
 
 @router.get("/witness")

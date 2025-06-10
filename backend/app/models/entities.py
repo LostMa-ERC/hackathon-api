@@ -1,6 +1,6 @@
-from typing import Annotated, List, Optional
+from typing import Annotated, List, Optional, Any
 
-from pydantic import BaseModel, BeforeValidator, Field, computed_field
+from pydantic import BaseModel, BeforeValidator, Field, computed_field, model_serializer
 
 
 def ignore_item(record: dict) -> dict | None:
@@ -89,11 +89,13 @@ class TextItem(BaseModel):
     alternative_name: List[Optional[str]] = Field(
         validation_alias="alternative_names", default=[]
     )
+    # Exclude nested field in CSV export
     language: Annotated[LanguageItem | None, BeforeValidator(ignore_item)]
     literary_form: str | None = Field(default=None)
     is_hypothetical: str | None = Field(default=None)
     claim_freetext: str | None = Field(default=None)
     peripheral: str | None = Field(default=None)
+    # Exclude nested field in CSV export
     genre: Annotated[GenreItem | None, BeforeValidator(ignore_item)]
     length: int | None = Field(default=None)
     length_freetext: str | None = Field(default=None)
@@ -127,6 +129,24 @@ class TextItem(BaseModel):
     reference_url: List[Optional[str]] = Field(
         validation_alias="described_at_URL", default=[]
     )
+
+
+exclude_text_keys = {
+    "language": {
+        "id": True,
+        "description": True,
+        "code": True,
+        "reference_url": True,
+    },
+    "genre": {
+        "id": True,
+        "alternative_name": True,
+        "parent_id": True,
+        "description": True,
+        "archetype": True,
+        "reference_url": True,
+    },
+}
 
 
 class Texts(ItemsBase):

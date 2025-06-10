@@ -2,7 +2,7 @@ from collections import namedtuple
 
 from app.core.db import DB
 
-Join = namedtuple("Join", field_names=["table_name", "t0_col", "on_col"])
+Join = namedtuple("Join", field_names=["table_name", "prefix", "t0_col", "on_col"])
 
 
 class SQLBuilder:
@@ -12,11 +12,13 @@ class SQLBuilder:
     def __init__(
         self,
         table_name: str,
+        prefix: str,
         primary_key: str = "H-ID",
         offset: int = 0,
         limit: int = 0,
         id: int = None,
     ):
+        self.prefix = prefix
         self.table_name = table_name
         self.order_condition = f'ORDER BY "{primary_key}"'
         if id:
@@ -47,24 +49,23 @@ class SQLBuilder:
 
     def join_tables(self, joins: list[Join]) -> list[dict]:
         # Get the selection aliases
-        selections = [r'SELECT COLUMNS(t0.*) AS "t0_\0"']
-        for n, _ in enumerate(joins):
-            n += 1
-            s = f'COLUMNS(t{n}.*) AS "t{n}_' + r'\0"'
+        base_selection = f'COLUMNS ({self.prefix}.*) AS "{self.prefix}_' + r'\0"'
+        selections = [f"SELECT {base_selection}"]
+        for join in joins:
+            s = f'COLUMNS({join.prefix}.*) AS "{join.prefix}_' + r'\0"'
             selections.append(s)
         selection = ", ".join(selections)
 
         # Get the from tables
-        from_stmts = [f"FROM {self.table_name} t0"]
-        for n, join in enumerate(joins):
-            n += 1
+        from_stmts = [f"FROM {self.table_name} {self.prefix}"]
+        for join in joins:
             s = f"""\
-LEFT JOIN {join.table_name} t{n}
-ON t0."{join.t0_col}" = t{n}."{join.on_col}"\
+LEFT JOIN {join.table_name} {join.prefix}
+ON {self.prefix}."{join.t0_col}" = {join.prefix}."{join.on_col}"\
 """
             from_stmts.append(s)
         from_stmt = " ".join(from_stmts)
 
         # Put it all together!
-        self.order_condition = 'ORDER BY t0."H-ID"'
+        self.order_condition = f'ORDER BY {self.prefix}."H-ID"'
         return f"{selection} {from_stmt} {self.conditions}"
