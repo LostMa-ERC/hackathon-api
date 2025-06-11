@@ -1,6 +1,7 @@
-from typing import Annotated, List, Optional, Any
+from typing import Annotated, Any, List, Optional
 
-from pydantic import BaseModel, BeforeValidator, Field, computed_field, model_serializer
+from pydantic import (BaseModel, BeforeValidator, Field, computed_field,
+                      model_serializer)
 
 
 def ignore_item(record: dict) -> dict | None:

@@ -1,17 +1,12 @@
+from typing import Literal
+
 from fastapi import APIRouter
 
 from app.api.deps import SessionDep
-from app.models.entities import (
-    Languages,
-    Stories,
-    Storyverses,
-    Texts,
-    TextItem,
-    exclude_text_keys,
-)
+from app.models.entities import (Languages, Stories, Storyverses, TextItem,
+                                 Texts, exclude_text_keys)
 
 from .utils import Join, SQLBuilder
-from typing import Literal
 
 router = APIRouter(
     prefix="/entities",
@@ -127,8 +122,11 @@ async def read_witnesses(
     id: int | None = None,
 ):
     """Read witness entities."""
-    builder = SQLBuilder(table_name="Witness", offset=offset, limit=limit, id=id)
-    data = builder.select_table(session=session)
+    builder = SQLBuilder(
+        table_name="Witness", prefix="witness", offset=offset, limit=limit, id=id
+    )
+    query = builder.select_table()
+    data = session.get_dict_array(query=query)
     return data
 
 
@@ -140,7 +138,9 @@ async def read_parts(
     id: int | None = None,
 ):
     """Read part entities."""
-    builder = SQLBuilder(table_name="Part", offset=offset, limit=limit, id=id)
+    builder = SQLBuilder(
+        table_name="Part", prefix="part", offset=offset, limit=limit, id=id
+    )
     data = builder.select_table(session=session)
     return data
 
@@ -153,7 +153,9 @@ async def read_documents(
     id: int | None = None,
 ):
     """Read document entities."""
-    builder = SQLBuilder(table_name="DocumentTable", offset=offset, limit=limit, id=id)
+    builder = SQLBuilder(
+        table_name="DocumentTable", prefix="doc", offset=offset, limit=limit, id=id
+    )
     data = builder.select_table(session=session)
     return data
 

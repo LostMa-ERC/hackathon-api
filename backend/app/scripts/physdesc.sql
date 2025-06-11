@@ -1,17 +1,18 @@
 SELECT
 	tt."H-ID" as text_id,
 	w."H-ID" as witness_id,
-	w.preferred_siglum witness_siglum,
-	tt.preferred_name text_title,
-	tt.language_COLUMN text_language,
-	tt.literary_form text_form,
+	w.preferred_siglum as witness_siglum,
+	w.status_witness as witness_status,
+	tt.preferred_name as text_title,
+	tt.language_COLUMN as text_language,
+	tt.literary_form as text_form,
 	g.preferred_name as text_genre,
-	w.date_of_creation.estMinDate witness_earliest_date,
-	w.date_of_creation.estMaxDate witness_latest_date,
+	w.date_of_creation.estMinDate as witness_earliest_date,
+	w.date_of_creation.estMaxDate as witness_latest_date,
 	w.date_of_creation.value as witness_exact_or_circa_date,
-	dt."H-ID" doc_id,
-	dt.current_shelfmark doc_shelfmark,
-	r.preferred_name doc_repository,
+	dt."H-ID" as doc_id,
+	dt.current_shelfmark as doc_shelfmark,
+	r.preferred_name as doc_repository,
 	p2.place_name as doc_city,
 	p2.country as doc_country,
 	p.div_order as part_order,
@@ -47,7 +48,7 @@ SELECT
 FROM main.TextTable tt
 JOIN main.Genre g on tt."specific_genre H-ID" = g."H-ID"
 JOIN (
-	SELECT unnest(w."observed_on_pages H-ID") as pages_id, w."is_manifestation_of H-ID", w.preferred_siglum, w.date_of_creation, w."H-ID"
+	SELECT unnest(w."observed_on_pages H-ID") as pages_id, w."is_manifestation_of H-ID", w.preferred_siglum, w.date_of_creation, w."H-ID", w.status_witness
 	FROM main.Witness w
 ) w on tt."H-ID" = w."is_manifestation_of H-ID"
 JOIN main.Part p on w.pages_id = p."H-ID"
