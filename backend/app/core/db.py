@@ -1,31 +1,41 @@
-import duckdb
+import kuzu
 
 from app.core.config import settings
 
 
 class DB:
-    def __init__(self, fp: str | None = settings.DUCKDB_PATH) -> None:
+    def __init__(
+        self, fp: str | None = settings.KUZU_PATH, read_only: bool = True
+    ) -> None:
         self.fp = fp
+        self.read_only = read_only
 
     def __enter__(self):
-        self.conn = duckdb.connect(self.fp)
+        # If the database has never been created, create an empty one in write-read mode
+        if not self.fp.is_dir():
+            _ = kuzu.Database(database_path=self.fp, read_only=False)
+
+        # Assuming the database is created, instantiate it in read-only
+        # (unless otherwise specified in the DB init)
+        try:
+            db = kuzu.Database(database_path=self.fp, read_only=self.read_only)
+        except RuntimeError as e:
+            raise e
+
+        # Make a connection to the database
+        self.conn = kuzu.Connection(db)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.conn.close()
 
-    def execute(self, query: str, paramaters: list | dict = None) -> None:
-        try:
-            self.conn.execute(query=query, parameters=paramaters)
-        except Exception as e:
-            print(query)
-            raise e
+    def execute(self, query: str, parameters: dict = {}) -> kuzu.QueryResult:
+        return self.conn.execute(query=query, parameters=parameters)
 
-    def get_dict_array(self, query: str, paramaters: list | dict = None) -> list[dict]:
-        try:
-            rel = self.conn.sql(query=query, params=paramaters)
-        except Exception as e:
-            print(query)
-            raise e
-        cols = rel.columns
-        return [{k: v for k, v in zip(cols, row)} for row in rel.fetchall()]
+    def get_rows(self, query: str, parameters: dict = {}) -> list:
+        result = self.execute(query=query, parameters=parameters)
+        rows = []
+        while result.has_next():
+            values = result.get_next()
+            rows.append(values)
+        return rows

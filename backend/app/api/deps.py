@@ -1,13 +1,14 @@
-from typing import Annotated, Generator
+from typing import Annotated, AsyncGenerator
 
 from fastapi import Depends
 
+from app.core.config import settings
 from app.core.db import DB
 
 
-# Connect to a persistent DuckDB database
-def get_session() -> Generator[DB]:
-    with DB() as session:
+# Connect to a persistent Kuzu graph database
+async def get_session() -> AsyncGenerator[DB]:
+    with DB(fp=settings.KUZU_PATH) as session:
         yield session
 
 

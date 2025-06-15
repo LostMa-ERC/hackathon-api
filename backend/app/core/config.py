@@ -14,6 +14,7 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
         extra="ignore",
     )
+    API_URL: str = "TBD"
     API_V1_STR: str = "/api/v1"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
     DUCKDB_PATH: Path = DATADIR.joinpath("heurist.duckdb")

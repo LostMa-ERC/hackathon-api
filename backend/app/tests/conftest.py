@@ -1,7 +1,6 @@
 from collections.abc import Generator
 
 import duckdb
-import kuzu
 import pytest
 from fastapi.testclient import TestClient
 
@@ -30,10 +29,9 @@ def duckdb_connection() -> Generator[duckdb.DuckDBPyConnection, None, None]:
 
 
 @pytest.fixture(scope="module")
-def kuzu_connection() -> Generator[kuzu.Connection, None, None]:
-    db = kuzu.Database()
-    with kuzu.Connection(db) as conn:
-        yield conn
+def writeable_db() -> Generator[DB, None, None]:
+    with SessionDep(read_only=False) as session:
+        yield session
 
 
 def pytest_configure():
