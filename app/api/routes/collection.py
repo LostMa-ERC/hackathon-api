@@ -1,7 +1,9 @@
+from collections import namedtuple
+
 from fastapi import APIRouter, HTTPException
 
 from app.api.deps import SessionDep
-from app.models.collection import CollectionMember, Collection
+from app.models.collection import Collection, CollectionMember
 
 router = APIRouter(
     prefix="/collection",
@@ -9,73 +11,54 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+Connector = namedtuple("ConnectorNodes", field_names=["parent", "child"])
 
-class CollectionRequester:
-    def __init__(self, node_label: str, session: SessionDep):
-        self.node_label = node_label
-        self.session = session
 
-    def get(self, id: str | int | None) -> Collection:
-        """Request a collection from the database and return valid metadata."""
-        # Build the query
-        query = self.build_collection_query(id=id)
+@router.get("/")
+async def read_collection(session: SessionDep, id: str | int):
+    """Read collections of entities in the database."""
+    try:
+        int(id)
 
-        # Validate and model the metadata of the collections' members
-        members = []
-        for node, parents, children in self.session.get_rows(query=query):
-            fields = node | {"totalParents": parents, "totalChildren": children}
-            collection_member = CollectionMember.model_validate(fields)
-            members.append(collection_member)
+    # If the id is a label / can't be an integer, use it as the node label
+    except Exception:
+        match_statement = f"MATCH (n: {id})"
 
-        # If requesting all the members, return a generic response
-        if not id or id == "general":
-            collection_title = self.build_collection_title()
-            return Collection(id="general", title=collection_title, member=members)
+    # If the id is a node ID, use it in a where condition
+    else:
+        match_statement = f"MATCH (n) WHERE n.id = {id}"
 
-        # If requesting a specific resource and it was found, return the collection
-        elif len(members) > 0:
-            member_title = members[0].name
-            collection_title = self.build_collection_title(member_title=member_title)
-            return Collection(id=id, title=collection_title, member=members)
+    # Get the label of the node being requested
+    rows = session.get_rows(query=f"{match_statement} RETURN n")
+    if len(rows) == 0:
+        return HTTPException(status_code=404, detail="No resource found.")
+    for row in rows:
+        node_label = row[0]["_label"]
+        break
 
-        # If requesting a specific resource and it wasn't found, return a 404 error
-        else:
-            return HTTPException(status_code=404, detail="Item not found")
+    # Get the labels for the requested node's parent and children nodes
+    if node_label == "Storyverse":
+        labels = Connector(parent="Storyverse", child="Story")
+    elif node_label == "Story":
+        labels = Connector(parent="Storyverse", child="Text")
+    elif node_label == "Text":
+        labels = Connector(parent="Story", child="Witness")
+    else:
+        labels = Connector(parent=node_label, child=node_label)
 
-    def build_collection_title(self, member_title: str | None = None):
-        if member_title:
-            return f"Collection on the {self.node_label} '{member_title}'"
-        else:
-            return f"Collection of {self.node_label} entities."
-
-    def build_collection_query(self, id: str | int | None) -> str:
-        if id and id != "general":
-            match_statement = f"MATCH (s:{self.node_label} {{id: {id}}})"
-        else:
-            match_statement = f"MATCH (s:{self.node_label})"
-
-        return f"""
+    # Compile the query statement
+    query = f"""
     {match_statement}
-    OPTIONAL MATCH (s)-[]->(p:{self.node_label})
-    OPTIONAL MATCH (c:{self.node_label})-[]->(s)
-    RETURN s, count(p), count(c)
-    ORDER BY s.id
+    OPTIONAL MATCH (n)-[]->(c: {labels.child})
+    OPTIONAL MATCH (p: {labels.parent})-[]->(n)
+    RETURN n, count(distinct(p)), count(distinct(c))
+    ORDER BY n.id
     """
 
+    members = []
+    for node, parents, children in session.get_rows(query=query):
+        fields = node | {"totalParents": parents, "totalChildren": children}
+        collection_member = CollectionMember.model_validate(fields)
+        members.append(collection_member)
 
-@router.get("/storyverse/")
-async def read_storyverse_collection(session: SessionDep, id: str | None = None):
-    """Read storyverses in the database."""
-    return CollectionRequester(node_label="Storyverse", session=session).get(id=id)
-
-
-@router.get("/story/")
-async def read_story_collection(session: SessionDep, id: str | None = None):
-    """Read stories in the database."""
-    return CollectionRequester(node_label="Story", session=session).get(id=id)
-
-
-@router.get("/text/")
-async def read_text_collection(session: SessionDep, id: str | None = None):
-    """Read stories in the database."""
-    return CollectionRequester(node_label="Text", session=session).get(id=id)
+    return Collection(id=id, title=f"Collection of {id} entities", member=members)

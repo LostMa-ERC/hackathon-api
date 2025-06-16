@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, computed_field
 
 
 class CollectionMember(BaseModel):
-    name: str = Field(serialization_alias="title")
+    name: str | None = Field(serialization_alias="title", default=None)
     id: int = Field(serialization_alias="@id")
     type: str = Field(validation_alias="_label", serialization_alias="@type")
     totalParents: int
