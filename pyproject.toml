@@ -22,11 +22,11 @@ dependencies = [
 dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["app", "db"]
 
 [tool.pytest.ini_options]
 addopts = [
     "--import-mode=importlib",
     "-p no:warnings"
 ]
-testspaths = ["app/tests/"]
+testspaths = ["app/tests/", "db/tests/"]

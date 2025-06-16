@@ -52,7 +52,6 @@ class Base(ABC):
             # Select the data from the relational database
             try:
                 rel = self.conn.sql(sql)
-                print(rel)
                 df = rel.pl()
             except Exception as e:
                 print(query)

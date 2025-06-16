@@ -6,7 +6,9 @@ from heurist.api.connection import HeuristAPIConnection
 from heurist.workflows import extract_transform_load
 
 from app.core.db import DB
-from app.core.etl import models, rels
+from app.core.config import settings
+from . import models, rels
+import kuzu
 
 load_dotenv(find_dotenv(".env"))
 LOGIN = os.environ.get("HEURIST_LOGIN")
@@ -36,6 +38,14 @@ EDGES = [
     rels.IsMaterializedOn,
     rels.IsLocated,
 ]
+
+
+def init_db():
+    dconn = duckdb.connect(settings.DUCKDB_PATH)
+    refresh_data(conn=dconn)
+    kdb = kuzu.Database(settings.KUZU_PATH)
+    kconn = kuzu.Connection(database=kdb)
+    rebuild_graph(kuzu_db=kconn, duck_conn=dconn)
 
 
 def refresh_data(conn: duckdb.DuckDBPyConnection):

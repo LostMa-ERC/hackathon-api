@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from app.core.etl import refresh
+from db import refresh
 
 
 @pytest.mark.dependency()

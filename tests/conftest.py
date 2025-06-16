@@ -8,6 +8,10 @@ from app.api.deps import SessionDep
 from app.core.config import settings
 from app.core.db import DB
 from app.main import app
+from db.refresh import init_db
+
+if not settings.DUCKDB_PATH.is_file():
+    init_db()
 
 
 @pytest.fixture(scope="module")

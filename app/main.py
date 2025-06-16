@@ -5,15 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
-from app.core.etl.refresh import rebuild_graph, refresh_data
+from db.refresh import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Download new data upon start up the server
     if not settings.DUCKDB_PATH.is_file() or settings.ENVIRONMENT == "production":
-        refresh_data()
-        rebuild_graph()
+        init_db()
+    print(settings.DUCKDB_PATH)
     yield
 
 
