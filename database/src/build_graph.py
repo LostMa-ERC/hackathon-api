@@ -22,6 +22,7 @@ NODES: list[graph_nodes.Base] = [
     graph_nodes.Place,
     graph_nodes.Genre,
     graph_nodes.Scripta,
+    graph_nodes.Language,
 ]
 
 EDGES = [
@@ -33,6 +34,7 @@ EDGES = [
     graph_edges.HasGenre,
     graph_edges.IsMaterializedOn,
     graph_edges.IsLocated,
+    graph_edges.HasLanguage,
 ]
 
 

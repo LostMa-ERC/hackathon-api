@@ -46,24 +46,26 @@ represents parent or child items. Defaults to "children."
         node_label = row[0]["_label"]
         break
 
-    # Get the labels for the requested node's parent and children nodes
-    # TODO: Change the type of parent/child nodes based on nav?
+    # Supported node types
     if node_label == "Storyverse":
-        parent, child = "Storyverse", "Story"
+        parent, description = (
+            "Storyverse",
+            "Collection of witnesses part of storyverse '{}'",
+        )
     elif node_label == "Story":
-        parent, child = "Storyverse", "Text"
+        parent, description = (
+            "Storyverse",
+            "Collection of witnesses that transmit story '{}'",
+        )
     elif node_label == "Text":
-        parent, child = "Story", "Witness"
-
-    # If a collection was requested for entities other than
-    # Storyverse, Story, or Text, return a 404 error
+        parent, description = "Story", "Collection of witnesses that manfiest text '{}'"
     else:
         return HTTPException(status_code=404, detail="Collection not found.")
 
     # Compile the query statement
     query = f"""
     {matched_node_n}
-    OPTIONAL MATCH (n)-[]->(c: {child})
+    OPTIONAL MATCH (n)-[e*]->(c: Witness)
     OPTIONAL MATCH (p: {parent})-[]->(n)
     RETURN n, count(distinct(p)), count(distinct(c))
     ORDER BY n.id
@@ -73,6 +75,7 @@ represents parent or child items. Defaults to "children."
     members = []
     for node, parents, children in session.get_rows(query=query):
         fields = node | {"totalParents": parents, "totalChildren": children}
+        fields.update({"description": description.format(fields["name"])})
         collection_member = CollectionMember.model_validate(fields)
         members.append(collection_member)
 

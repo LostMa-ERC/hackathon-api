@@ -9,6 +9,7 @@ class CollectionMember(BaseModel):
     type: str = Field(validation_alias="_label", serialization_alias="@type")
     totalParents: int
     totalChildren: int
+    description: str | None = Field(default=None)
 
     @computed_field
     @property
