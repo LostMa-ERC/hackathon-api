@@ -1,9 +1,10 @@
+import duckdb
 import kuzu
 
 from app.core.config import settings
 
 
-class DB:
+class GraphDB:
     def __init__(
         self, fp: str | None = settings.KUZU_PATH, read_only: bool = True
     ) -> None:
@@ -39,3 +40,19 @@ class DB:
             values = result.get_next()
             rows.append(values)
         return rows
+
+
+class RelationalDB:
+    def __init__(
+        self, fp: str | None = settings.DUCKDB_PATH, read_only: bool = True
+    ) -> None:
+        self.fp = fp
+        self.read_only = read_only
+
+    def __enter__(self):
+        # Make a connection to the database
+        self.conn = duckdb.connect(self.fp)
+        return self.conn
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.conn.close()

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import SessionDep
-
+from app.api.deps import GraphDBSessionDep
 
 router = APIRouter(
     prefix="/navigation",
@@ -12,7 +11,7 @@ router = APIRouter(
 
 @router.get("/")
 async def read_navigation(
-    session: SessionDep,
+    session: GraphDBSessionDep,
     resource: str,
     page: int,
     ref: str = None,

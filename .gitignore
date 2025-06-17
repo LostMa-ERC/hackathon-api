@@ -69,6 +69,7 @@ ipython_config.py
 #   in version control.
 #   https://pdm.fming.dev/#use-with-ide
 .pdm.toml
+uv.lock
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -98,7 +99,9 @@ venv.bak/
 # VSCode
 .vscode
 
-data/*
+# API data sources
+database/*.*db
+database/*_db
 *.log
 
 # Kuzu CLI

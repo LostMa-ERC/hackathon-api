@@ -22,7 +22,7 @@ dependencies = [
 dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["app", "db"]
+packages = ["app", "database"]
 
 [tool.pytest.ini_options]
 # Ignore the DB tests when running full pytest

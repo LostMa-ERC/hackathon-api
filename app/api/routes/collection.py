@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import SessionDep
+from app.api.deps import GraphDBSessionDep
 from app.models.collection import Collection, CollectionMember
 
 router = APIRouter(
@@ -12,7 +12,7 @@ router = APIRouter(
 
 @router.get("/")
 async def read_collection(
-    session: SessionDep,
+    session: GraphDBSessionDep,
     id: str | int = "Story",
     nav: str = "children",
 ):

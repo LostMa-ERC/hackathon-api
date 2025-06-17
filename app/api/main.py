@@ -2,7 +2,8 @@ from fastapi import APIRouter
 
 from app.api.routes import collection, document, navigation
 
-from .constants import DTS_COLLECTION, DTS_CONTEXT, DTS_DOCUMENT, DTS_ID, DTS_NAVIGATION
+from .constants import (DTS_COLLECTION, DTS_CONTEXT, DTS_DOCUMENT, DTS_ID,
+                        DTS_NAVIGATION)
 
 api_router = APIRouter()
 
