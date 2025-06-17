@@ -100,3 +100,7 @@ venv.bak/
 
 data/*
 *.log
+
+# Kuzu CLI
+kuzu
+history.txt
