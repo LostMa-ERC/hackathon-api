@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-@router.get("/resource/")
+@router.get("/")
 async def read_resource(
     session: SessionDep,
     resource: str,

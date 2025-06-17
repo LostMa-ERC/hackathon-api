@@ -10,7 +10,7 @@ router = APIRouter(
 )
 
 
-@router.get("/navigation/")
+@router.get("/")
 async def read_navigation(
     session: SessionDep,
     resource: str,

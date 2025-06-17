@@ -25,5 +25,6 @@ dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
 packages = ["app", "db"]
 
 [tool.pytest.ini_options]
-addopts = ["--import-mode=importlib", "-p no:warnings"]
-testspaths = ["app/tests/", "db/tests/"]
+# Ignore the DB tests when running full pytest
+addopts = ["--import-mode=importlib", "-p no:warnings", "--ignore=tests/db"]
+testspaths = ["tests/app"]

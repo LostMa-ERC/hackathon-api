@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     DUCKDB_PATH: Path = DATADIR.joinpath("heurist.duckdb")
     KUZU_PATH: Path = DATADIR.joinpath("kuzu_db")
 
-    PROJECT_NAME: str
+    PROJECT_NAME: str = "Hackathon API"
 
 
 settings = Settings()

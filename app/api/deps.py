@@ -7,7 +7,7 @@ from app.core.db import DB
 
 
 # Connect to a persistent Kuzu graph database
-async def get_session() -> AsyncGenerator[DB]:
+async def get_session() -> AsyncGenerator[DB, None]:
     with DB(fp=settings.KUZU_PATH) as session:
         yield session
 
