@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "api"
 version = "0.0.1"
-description = "A small example of a FastAPI backend"
+description = "FastAPI backend of LostMa data"
 requires-python = ">=3.12"
 license = "MIT"
 
@@ -25,8 +25,5 @@ dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
 packages = ["app", "db"]
 
 [tool.pytest.ini_options]
-addopts = [
-    "--import-mode=importlib",
-    "-p no:warnings"
-]
+addopts = ["--import-mode=importlib", "-p no:warnings"]
 testspaths = ["app/tests/", "db/tests/"]
