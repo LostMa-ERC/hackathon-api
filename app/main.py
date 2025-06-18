@@ -1,5 +1,5 @@
-from pathlib import Path
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +18,9 @@ async def lifespan(app: FastAPI):
         init_db()
         print(f"Saved Heurist data in DuckDB database file at: {settings.DUCKDB_PATH}")
         print(f"Modelled relational data as graph database at: {settings.KUZU_PATH}")
+        print(
+            f"Wrote witness tree JSON files at: {settings.STATIC_DIR.joinpath("resource")}"
+        )
     yield
 
 

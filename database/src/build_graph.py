@@ -5,6 +5,7 @@ import kuzu
 from dotenv import find_dotenv, load_dotenv
 
 from database.src import graph_edges, graph_nodes
+from app.core.config import settings
 
 load_dotenv(find_dotenv(".env"))
 LOGIN = os.environ.get("HEURIST_LOGIN")
@@ -38,7 +39,15 @@ EDGES = [
 ]
 
 
-def rebuild_graph(kuzu_db: kuzu.Connection, duck_conn: duckdb.DuckDBPyConnection):
+def rebuild_graph(
+    kuzu_db: kuzu.Connection = None,
+    duck_conn: duckdb.DuckDBPyConnection = None,
+):
+    if not duck_conn:
+        duck_conn = duckdb.connect(settings.DUCKDB_PATH)
+    if not kuzu_db:
+        db = kuzu.Database(settings.KUZU_PATH)
+        kuzu_db = kuzu.Connection(db)
 
     # Delete all relationships, then delete all nodes
     for rel in EDGES + NODES:

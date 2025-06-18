@@ -21,6 +21,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["black>=24.1.0", "isort>=5.13.0", "pytest"]
 
+[project.scripts]
+init-db = "database.src.init_db:init_db"
+rebuild-graph = "database.src.build_graph:rebuild_graph"
+build-trees = "database.src.build_witness_trees:build_witness_trees"
+
 [tool.hatch.build.targets.wheel]
 packages = ["app", "database"]
 

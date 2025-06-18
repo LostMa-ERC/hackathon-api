@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
     DUCKDB_PATH: Path = database.config.RELATIONAL_DB_PATH
     KUZU_PATH: Path = database.config.GRAPH_DB_PATH
+    STATIC_DIR: Path = Path(__file__).parent.parent.joinpath("static")
 
     PROJECT_NAME: str = "Hackathon API"
 
