@@ -7,13 +7,18 @@ from fastapi.responses import FileResponse
 
 from app.api.main import api_router
 from app.core.config import settings
-from database.src.init_db import init_db
+from app.core.build_db.init_db import init_db
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Download new data upon start up the server
-    if not settings.DUCKDB_PATH.is_file() or settings.ENVIRONMENT == "production":
+    # If the data sources are missing or if in deploying for production,
+    # renew the data upon the server's start up
+    if (
+        not settings.DUCKDB_PATH.is_file()
+        or not settings.KUZU_PATH
+        or settings.ENVIRONMENT == "production"
+    ):
         print("Initializing database with new data from Heurist.")
         init_db()
         print(f"Saved Heurist data in DuckDB database file at: {settings.DUCKDB_PATH}")
